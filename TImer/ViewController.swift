@@ -14,13 +14,15 @@ class ViewController: UIViewController , UITableViewDelegate,UITableViewDataSour
     var microSeconds = 0
     var seconds=0
     var minutes=0
-    
-    var results:[String]=["Helllo"]
+    var timerIsWorkingNow=false
+    var results:[String]=[]
     
     @IBOutlet weak var timeLabel: UILabel!
     
+    @IBOutlet weak var startStopButton: UIButton!
     @IBOutlet weak var resultsTableView: UITableView!
     
+ 
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return results.count
@@ -38,7 +40,7 @@ class ViewController: UIViewController , UITableViewDelegate,UITableViewDataSour
         // Do any additional setup after loading the view.
     }
 
-        @objc func UpdateTimer() {
+    @objc func UpdateTimer() {
         microSeconds = microSeconds+1
             if microSeconds==99 {
                 seconds+=1
@@ -51,15 +53,23 @@ class ViewController: UIViewController , UITableViewDelegate,UITableViewDataSour
             timeLabel.text = String(format: " %02d:%02d:%02d", minutes, seconds, microSeconds)
     }
    
-    @IBAction func startTimer(_ sender: Any) {
-        timer = Timer.scheduledTimer(timeInterval: 0.01, target: self, selector: #selector(UpdateTimer), userInfo: nil, repeats: true)
+    @IBAction func startStopTimer(_ sender: UIButton ){
+        if timerIsWorkingNow==true {
+            timer.invalidate()
+            timerIsWorkingNow=false
+            sender.titleLabel?.text="Start"
+        }
+        else {
+            timer = Timer.scheduledTimer(timeInterval: 0.01, target: self, selector: #selector (UpdateTimer), userInfo: nil, repeats: true)
+            sender.titleLabel?.text="Stop"
+            timerIsWorkingNow=true
+        }
         // common modes
         
         
     }
-    @IBAction func stopTimer(_ sender: Any) {
-         timer.invalidate()
-    }
+   
+    
     @IBAction func resetTimer(_ sender: Any) {
         
         microSeconds=0
@@ -67,6 +77,7 @@ class ViewController: UIViewController , UITableViewDelegate,UITableViewDataSour
         minutes=0
         
         timer.invalidate()
+        timerIsWorkingNow=false
         timeLabel.text = String(format: " %02d:%02d,%02d", minutes, seconds, microSeconds)
         
         
@@ -79,7 +90,8 @@ class ViewController: UIViewController , UITableViewDelegate,UITableViewDataSour
         results.append(timeLabel.text!)
         self.resultsTableView.reloadData()
         resetTimer(self)
-        startTimer(self)
+        timerIsWorkingNow=false
+        startStopTimer(startStopButton)
         
     }
 }
