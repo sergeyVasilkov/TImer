@@ -11,11 +11,29 @@ import UIKit
 class ViewController: UIViewController , UITableViewDelegate,UITableViewDataSource {
   
     var timer=Timer()
-    var microSeconds = 0
-    var seconds=0
-    var minutes=0
+
+    
     var timerIsWorkingNow=false
     var results:[String]=[]
+ 
+    var  timeInSeconds:TimeInterval = 0
+    var lastCircleTime:TimeInterval = 0
+    
+    var hours:Int {
+        get{
+            return   Int(timeInSeconds) / 3600
+        }
+    }
+    var minutes :Int {
+        get{
+            return Int(timeInSeconds) / 60 % 60
+        }
+    }
+    var seconds :Int {
+        get{
+         return Int(timeInSeconds)%60
+        }
+    }
     
     @IBOutlet weak var timeLabel: UILabel!
     
@@ -41,16 +59,9 @@ class ViewController: UIViewController , UITableViewDelegate,UITableViewDataSour
     }
 
     @objc func UpdateTimer() {
-        microSeconds = microSeconds+1
-            if microSeconds==99 {
-                seconds+=1
-                microSeconds=0
-            }
-            if seconds==59 {
-                minutes+=1
-                seconds=0
-            }
-            timeLabel.text = String(format: " %02d:%02d:%02d", minutes, seconds, microSeconds)
+       
+        timeInSeconds+=1.0
+        timeLabel.text = String(format: " %02d:%02d:%02d", hours, minutes,seconds)
     }
    
     @IBAction func startStopTimer(_ sender: UIButton ){
@@ -72,13 +83,11 @@ class ViewController: UIViewController , UITableViewDelegate,UITableViewDataSour
     
     @IBAction func resetTimer(_ sender: Any) {
         
-        microSeconds=0
-        seconds=0
-        minutes=0
+        timeInSeconds=0.0
         
         timer.invalidate()
         timerIsWorkingNow=false
-        timeLabel.text = String(format: " %02d:%02d,%02d", minutes, seconds, microSeconds)
+        timeLabel.text = String(format: " %02d:%02d,%02d", hours,minutes, seconds)
         
         
     }
