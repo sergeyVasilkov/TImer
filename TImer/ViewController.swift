@@ -9,46 +9,35 @@
 import UIKit
 
 class ViewController: UIViewController , UITableViewDelegate,UITableViewDataSource {
-  
-    var timer=Timer()
-
-    
-    var timerIsWorkingNow=false
-    var results:[String]=[]
- 
-    var  timeInSeconds:TimeInterval = 0
-    var lastCircleTime:TimeInterval = 0
-    
-    var hours:Int {
-        get{
-            return   Int(timeInSeconds) / 3600
-        }
-    }
-    var minutes :Int {
-        get{
-            return Int(timeInSeconds) / 60 % 60
-        }
-    }
-    var seconds :Int {
-        get{
-         return Int(timeInSeconds)%60
-        }
-    }
-    
     @IBOutlet weak var timeLabel: UILabel!
-    
     @IBOutlet weak var startStopButton: UIButton!
     @IBOutlet weak var resultsTableView: UITableView!
     
- 
+    var timer: Timer?
+    var results = [String]()
+
+    var startTime: TimeInterval = 0
+    var elapsedTime: TimeInterval = 0
+    var circleTime: TimeInterval = 0
+    
+    var currentTime: TimeInterval {
+        get {
+            return Date().timeIntervalSince1970 - startTime + elapsedTime
+        }
+    }
+    
+    deinit {
+        timer?.invalidate()
+        timer = nil
+    }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return results.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier:"CellIdentifier", for: indexPath)
-       cell.textLabel?.text=results[indexPath.row]
+        let cell = tableView.dequeueReusableCell(withIdentifier: "CellIdentifier", for: indexPath)
+        cell.textLabel?.text = results[indexPath.row]
         return cell
     }
     
@@ -57,51 +46,41 @@ class ViewController: UIViewController , UITableViewDelegate,UITableViewDataSour
         self.resultsTableView.backgroundColor = UIColor.darkGray
         // Do any additional setup after loading the view.
     }
-
-    @objc func UpdateTimer() {
-       
-        timeInSeconds+=1.0
-        timeLabel.text = String(format: " %02d:%02d:%02d", hours, minutes,seconds)
+    
+    @objc func updateTimer() {
+        timeLabel.text = currentTime.timeString
     }
-   
-    @IBAction func startStopTimer(_ sender: UIButton ){
-        if timerIsWorkingNow==true {
-            timer.invalidate()
-            timerIsWorkingNow=false
-            sender.titleLabel?.text="Start"
+    
+    @IBAction func startStopTimer(_ sender: UIButton) {
+        if timer != nil {
+            elapsedTime += Date().timeIntervalSince1970 - startTime
+            timer?.invalidate()
+            timer = nil
+        } else {
+            startTime = Date().timeIntervalSince1970
+            timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true, block: { [weak self] _ in
+                self?.updateTimer()
+            })
         }
-        else {
-            timer = Timer.scheduledTimer(timeInterval: 0.01, target: self, selector: #selector (UpdateTimer), userInfo: nil, repeats: true)
-            sender.titleLabel?.text="Stop"
-            timerIsWorkingNow=true
-        }
-        // common modes
-        
-        
     }
-   
     
     @IBAction func resetTimer(_ sender: Any) {
+        timer?.invalidate()
+        timer = nil
+        elapsedTime = 0
         
-        timeInSeconds=0.0
-        
-        timer.invalidate()
-        timerIsWorkingNow=false
-        timeLabel.text = String(format: " %02d:%02d,%02d", hours,minutes, seconds)
-        
-        
+        timeLabel.text = "00:00:00"
+        results = []
+        resultsTableView.reloadData()
     }
-   
-    
     
     @IBAction func addResult(_ sender: Any) {
-     
-        results.append(timeLabel.text!)
-        self.resultsTableView.reloadData()
-        resetTimer(self)
-        timerIsWorkingNow=false
-        startStopTimer(startStopButton)
+        let cTime = currentTime
+        let time = cTime - circleTime
+        circleTime = cTime
         
+        results.append(time.timeString)
+        resultsTableView.reloadData()
     }
 }
 
